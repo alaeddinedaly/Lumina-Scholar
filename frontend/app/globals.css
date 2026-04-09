@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-white antialiased selection:bg-accent-cyan/30;
+    /* Optional: custom scrollbar styling if Lenis is used */
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/[0.04] border border-white/[0.08] backdrop-blur-md rounded-xl;
+  }
+}
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
