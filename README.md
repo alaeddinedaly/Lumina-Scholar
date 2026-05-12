@@ -82,7 +82,7 @@ lumina-scholar/
 ### 1. Clone & configure environment
 
 ```bash
-git clone https://github.com/your-username/lumina-scholar.git
+git clone https://github.com/alaeddinedaly/lumina-scholar.git
 cd lumina-scholar
 cp .env.example .env   # Fill in your secrets
 ```
