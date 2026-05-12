@@ -1,17 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GlassInput } from "@/components/auth/GlassInput";
-import { ArrowRight } from "lucide-react";
+import { GlassSelect } from "@/components/auth/GlassSelect";
+import { ArrowRight, GraduationCap, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import api from "@/lib/api";
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState<"PROFESSOR" | "STUDENT">("PROFESSOR");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [tenants, setTenants] = useState<string[]>([]);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    api.get("/auth/tenants").then(res => setTenants(res.data)).catch(() => {});
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    setErrorMsg("");
+
+    const form = e.currentTarget;
+    const firstName = (form.elements.namedItem("firstName") as HTMLInputElement).value;
+    const lastName = (form.elements.namedItem("lastName") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+    
+    // Fallbacks for tenant mapping based on role
+    const tenantInput = form.elements.namedItem("tenantName") as HTMLInputElement | HTMLSelectElement;
+    const tenantName = tenantInput && tenantInput.value ? tenantInput.value.trim() : "Lumina University";
+
+    try {
+      await api.post("/auth/register", {
+        email,
+        password,
+        name: `${firstName} ${lastName}`,
+        role,
+        tenantName,
+      });
+      
+      // Auto login immediately after register
+      await api.post("/auth/login", { email, password });
+      
+      if (role === "PROFESSOR") router.push("/professor/dashboard");
+      else router.push("/student/dashboard");
+      
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || "Registration failed");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -33,22 +74,45 @@ export default function SignUpPage() {
         />
       </div>
 
-      <div className="relative z-10 p-8 md:p-10 rounded-[11px] backdrop-blur-xl flex flex-col gap-8"
-        style={{
-          background: "rgba(10, 10, 10, 0.65)",
-          border: "1px solid rgba(255,255,255,0.06)",
-          boxShadow: "0 20px 40px -10px rgba(0,0,0,0.8)",
-        }}>
+      <div className="relative z-10 p-8 md:p-10 rounded-[11px] backdrop-blur-xl flex flex-col gap-8 bg-white/80 dark:bg-[#0a0a0a]/65 border border-black/5 dark:border-white/[0.06] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8)]">
 
         {/* Header */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-[26px] font-semibold tracking-tight text-[#f0f0f2]">
-            Create a workspace
+          <h1 className="text-[26px] font-semibold tracking-tight text-slate-900 dark:text-[#f0f0f2]">
+            Create an Account
           </h1>
-          <p className="text-[14px] text-white/40 font-light leading-relaxed">
-            Configure your event-driven environment and invite your team.
+          <p className="text-[14px] text-slate-500 dark:text-white/40 font-light leading-relaxed">
+            Join the automated university ecosystem. Select your role to begin.
           </p>
         </div>
+
+        {/* Role Toggle */}
+        <div className="flex p-1 rounded-[8px] bg-slate-100 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 relative z-20">
+          <button
+            type="button"
+            onClick={() => setRole("PROFESSOR")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-[13px] font-medium rounded-[6px] transition-all
+              ${role === "PROFESSOR" ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/70"}`}
+          >
+            <GraduationCap className="w-4 h-4" />
+            Professor
+          </button>
+          <button
+            type="button"
+            onClick={() => setRole("STUDENT")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-[13px] font-medium rounded-[6px] transition-all
+              ${role === "STUDENT" ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/70"}`}
+          >
+            <Users className="w-4 h-4" />
+            Student
+          </button>
+        </div>
+
+        {errorMsg && (
+          <div className="p-3 rounded-[6px] bg-red-500/10 border border-red-500/20 text-red-400 text-[12px] text-center">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -73,19 +137,60 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <GlassInput
-            id="workspace"
-            type="text"
-            label="Workspace Name"
-            placeholder="Acme Corp"
-            required
-          />
+          {role === "PROFESSOR" && (
+            <>
+              <GlassInput
+                id="tenantName"
+                type="text"
+                label="Department (Tenant Group)"
+                placeholder="Computer Science"
+                list="tenant-list"
+                required
+              />
+              <datalist id="tenant-list">
+                {tenants.map(t => <option key={t} value={t} />)}
+              </datalist>
+            </>
+          )}
+
+          {role === "STUDENT" && (
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <GlassInput
+                  id="major"
+                  type="text"
+                  label="Major"
+                  placeholder="Computer Science"
+                  required
+                />
+              </div>
+              <div className="flex-1">
+                {tenants.length > 0 ? (
+                  <GlassSelect
+                    id="tenantName"
+                    label="Tenant Group"
+                    required
+                    defaultValue=""
+                    options={tenants}
+                  />
+                ) : (
+                  <GlassInput
+                    id="tenantName"
+                    type="text"
+                    label="Tenant Group"
+                    placeholder="Loading groups..."
+                    required
+                  />
+                )}
+              </div>
+            </div>
+          )}
 
           <GlassInput
             id="email"
             type="email"
-            label="Work Email"
-            placeholder="ada@acme.com"
+            label="University Email"
+            placeholder="ada@university.edu"
             required
           />
           <GlassInput
@@ -96,8 +201,8 @@ export default function SignUpPage() {
             required
           />
 
-          <p className="text-[11px] text-white/30 font-light mt-1">
-            By creating an account, you agree to our <a href="#" className="underline hover:text-white/60 transition-colors">Terms of Service</a> and <a href="#" className="underline hover:text-white/60 transition-colors">Privacy Policy</a>.
+          <p className="text-[11px] text-slate-500 dark:text-white/30 font-light mt-1">
+            By creating an account, you agree to our <a href="#" className="underline hover:text-slate-800 dark:hover:text-white/60 transition-colors">Terms of Service</a> and <a href="#" className="underline hover:text-slate-800 dark:hover:text-white/60 transition-colors">Privacy Policy</a>.
           </p>
 
           <button
@@ -121,7 +226,7 @@ export default function SignUpPage() {
               />
             ) : (
               <>
-                Initialize Workspace
+                Join Lumina Scholar
                 <ArrowRight className="w-3.5 h-3.5 opacity-60 group-hover:translate-x-1 group-hover:opacity-100 transition-all" />
               </>
             )}
@@ -130,20 +235,20 @@ export default function SignUpPage() {
 
         {/* Divider */}
         <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-white/5" />
-          <span className="text-[10px] uppercase tracking-[0.1em] text-white/30">Or sign up with</span>
-          <div className="h-px flex-1 bg-white/5" />
+          <div className="h-px flex-1 bg-black/5 dark:bg-white/5" />
+          <span className="text-[10px] uppercase tracking-[0.1em] text-slate-400 dark:text-white/30">Or sign up with</span>
+          <div className="h-px flex-1 bg-black/5 dark:bg-white/5" />
         </div>
 
         {/* OAuth */}
         <div className="flex gap-3">
-          <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[4px] border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-colors text-[13px] text-white/70 hover:text-white">
+          <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[4px] border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.05] dark:hover:bg-white/[0.04] transition-colors text-[13px] text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white">
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="currentColor" fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z" />
             </svg>
             GitHub
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[4px] border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-colors text-[13px] text-white/70 hover:text-white">
+          <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[4px] border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.05] dark:hover:bg-white/[0.04] transition-colors text-[13px] text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white">
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
               <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />

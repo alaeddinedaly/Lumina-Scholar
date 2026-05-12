@@ -10,32 +10,32 @@ export default function HistoryPage() {
   const sessions = [
     {
       id: 1,
-      title: "Q3 European Market Revenue Analysis",
-      datasets: ["sales_data_q3.csv", "regional_mapping.xlsx"],
+      title: "Midterm Review: Classical Mechanics",
+      documents: ["Physics101_Syllabus.pdf", "Chapter4_Slides.pptx"],
       date: "2 hours ago",
       queries: 14,
       isStarred: true
     },
     {
       id: 2,
-      title: "Customer Churn Prediction Model",
-      datasets: ["customer_activity_log.csv"],
+      title: "Plagiarism Screening & Feedback",
+      documents: ["Assignment_4_Submissions.zip"],
       date: "Yesterday",
       queries: 32,
       isStarred: false
     },
     {
       id: 3,
-      title: "Inventory Restock Forecast vs Actuals",
-      datasets: ["inventory_live.csv", "supplier_lead_times.csv"],
+      title: "Homework 2 Concepts Breakdown",
+      documents: ["HW2_Questions.pdf", "Lecture_Notes_Wk3.docx"],
       date: "Oct 12, 2026",
       queries: 8,
       isStarred: false
     },
     {
       id: 4,
-      title: "Marketing Campaign ROI Tracking",
-      datasets: ["ad_spend_h1.csv"],
+      title: "Final Project Guidelines Analysis",
+      documents: ["Project_Rubric_Fall.pdf"],
       date: "Sep 28, 2026",
       queries: 19,
       isStarred: true
@@ -51,10 +51,10 @@ export default function HistoryPage() {
             <History className="w-5 h-5 text-accent-violet" />
           </div>
           <h1 className="text-[24px] font-semibold tracking-tight text-[#f0f0f2]">
-            Conversation History
+            Study Sessions
           </h1>
           <p className="text-[14px] text-white/40 font-light leading-relaxed max-w-[400px]">
-            Review, continue, or export your previous AI data analysis sessions.
+            Review, continue, or export your previous AI tutoring and grading sessions.
           </p>
         </div>
         
@@ -98,9 +98,9 @@ export default function HistoryPage() {
 
             <div className="flex flex-col gap-2 relative z-10">
               <div className="flex items-center gap-2 text-white/40">
-                <Database className="w-3.5 h-3.5" />
+                <Database className="w-3.5 h-3.5 hidden" />
                 <span className="text-[12px] font-mono tracking-wide truncate">
-                  {session.datasets.join(", ")}
+                  {session.documents.join(", ")}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-white/30">

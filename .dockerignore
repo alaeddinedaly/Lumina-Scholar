@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/.next
+**/venv
+**/__pycache__
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.env
+dist
+build
+.next

@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PROFESSOR
+  STUDENT
+}
+
+enum DocumentStatus {
+  PENDING
+  INDEXED
+  FAILED
+}
+
+enum ChannelType {
+  COURSE   // Created by professor, all enrolled students participate
+  PRIVATE  // Created by any user, explicit member list
+}
+
+model Tenant {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  createdAt DateTime   @default(now())
+
+  users           User[]
+  courses         Course[]
+  documents       Document[]
+  messages        Message[]
+  channels        Channel[]
+  channelMessages ChannelMessage[]
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  tenantId     String   @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
+  courses         Course[]        @relation("ProfessorCourses")
+  enrollments     Enrollment[]
+  documents       Document[]
+  messages        Message[]
+  channels        Channel[]
+  channelMessages ChannelMessage[]
+  channelMembers  ChannelMember[]
+  submissions     Submission[]
+}
+
+model Course {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  tenantId    String   @db.Uuid
+  professorId String   @db.Uuid
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  professor   User         @relation("ProfessorCourses", fields: [professorId], references: [id])
+  enrollments Enrollment[]
+  documents   Document[]
+  messages    Message[]
+  channels    Channel[]
+}
+
+model Enrollment {
+  id         String   @id @default(uuid()) @db.Uuid
+  studentId  String   @db.Uuid
+  courseId   String   @db.Uuid
+  enrolledAt DateTime @default(now())
+
+  student    User     @relation(fields: [studentId], references: [id])
+  course     Course   @relation(fields: [courseId], references: [id])
+
+  @@unique([studentId, courseId])
+}
+
+model Document {
+  id           String         @id @default(uuid()) @db.Uuid
+  filename     String
+  originalName String
+  filePath     String
+  status       DocumentStatus @default(PENDING)
+  chunkCount   Int            @default(0)
+  courseId     String?        @db.Uuid
+  uploadedById String         @db.Uuid
+  tenantId     String         @db.Uuid
+  isPersonal   Boolean        @default(false)
+  isAssignment Boolean        @default(false)
+  deadline     DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  course       Course?        @relation(fields: [courseId], references: [id])
+  uploadedBy   User           @relation(fields: [uploadedById], references: [id])
+  tenant       Tenant         @relation(fields: [tenantId], references: [id])
+  submissions  Submission[]
+}
+
+model Message {
+  id        String   @id @default(uuid()) @db.Uuid
+  sessionId String
+  query     String
+  response  String
+  courseId  String?  @db.Uuid
+  userId    String   @db.Uuid
+  tenantId  String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  course    Course?  @relation(fields: [courseId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  citations Citation[]
+}
+
+model Citation {
+  id              String   @id @default(uuid()) @db.Uuid
+  messageId       String   @db.Uuid
+  sourceFile      String
+  pageNumber      Int
+  similarityScore Float
+  chunkText       String
+
+  message         Message  @relation(fields: [messageId], references: [id])
+}
+
+model Channel {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  type        ChannelType @default(COURSE)
+  courseId    String?     @db.Uuid
+  tenantId    String      @db.Uuid
+  createdById String      @db.Uuid
+  createdAt   DateTime    @default(now())
+
+  course      Course?          @relation(fields: [courseId], references: [id])
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  createdBy   User             @relation(fields: [createdById], references: [id])
+  members     ChannelMember[]
+  messages    ChannelMessage[]
+}
+
+model ChannelMember {
+  id        String   @id @default(uuid()) @db.Uuid
+  channelId String   @db.Uuid
+  userId    String   @db.Uuid
+  joinedAt  DateTime @default(now())
+
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([channelId, userId])
+}
+
+model ChannelMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  content   String
+  channelId String   @db.Uuid
+  userId    String   @db.Uuid
+  tenantId  String   @db.Uuid
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model Submission {
+  id                   String    @id @default(uuid()) @db.Uuid
+  documentId           String    @db.Uuid
+  studentId            String    @db.Uuid
+  score                Int?
+  submittedAt          DateTime  @default(now())
+  submissionFilePath   String?
+  submissionFileName   String?
+  
+  document             Document  @relation(fields: [documentId], references: [id])
+  student              User      @relation(fields: [studentId], references: [id])
+
+  @@unique([documentId, studentId])
+}

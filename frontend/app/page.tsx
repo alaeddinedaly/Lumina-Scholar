@@ -12,30 +12,30 @@ const HeroScene = dynamic(() => import("@/components/HeroScene"), { ssr: false }
 const FEATURES = [
   {
     n: "01",
-    title: "Natural Language Queries",
-    body: "Ask in plain English. Lumina parses intent and returns structured insight instantly — no SQL, no BI training required.",
+    title: "AI Document Summarization",
+    body: "Upload heavy academic PDFs. Lumina Scholar parses intent and returns structured study guides instantly — no manual highlighting required.",
   },
   {
     n: "02",
-    title: "Live Data Connections",
-    body: "Plug into any source — databases, APIs, spreadsheets. Every metric refreshes the moment underlying data changes.",
+    title: "Instant Push Distribution",
+    body: "A robust Professor Hub allows for direct drag-and-drop distribution of syllabi and grading rubrics straight to enrolled students.",
   },
   {
     n: "03",
-    title: "Adaptive Dashboards",
-    body: "Boards that reconfigure around your context. Drill into what matters, collapse what doesn't, share in one click.",
+    title: "Classroom Chat Channels",
+    body: "Dedicated multi-tenant communication. Students and professors collaborate transparently via native real-time chat rooms.",
   },
   {
     n: "04",
-    title: "Predictive Signals",
-    body: "Forecasting runs inline alongside your data. Spot anomalies and trends before they become problems.",
+    title: "Private AI Tutoring",
+    body: "A strict context-bound AI bot that provides answers explicitly cited from your university's lecture slides. No hallucinations.",
   },
 ];
 
 const METRICS = [
-  { value: "< 2ms", label: "Query latency" },
-  { value: "99.99%", label: "Availability" },
-  { value: "Any DB", label: "Data sources" },
+  { value: "< 2s", label: "Readtime" },
+  { value: "99.9%", label: "Citation Accuracy" },
+  { value: "PDF & PPTX", label: "File Types" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export default function Home() {
 
   return (
     <ReactLenis root options={{ lerp: 0.09, touchMultiplier: 1.4 }}>
-      <main className="relative w-full overflow-x-hidden" style={{ background: "#080808" }}>
+      <main className="dark relative w-full overflow-x-hidden" style={{ background: "#080808" }}>
 
         {/* ── Grain overlay ── */}
         <div
@@ -95,10 +95,10 @@ export default function Home() {
         >
           <Link 
             href="/" 
-            className="text-[13px] font-medium tracking-[0.15em] transition-opacity hover:opacity-70"
+            className="text-[13px] font-medium tracking-[0.15em] transition-opacity hover:opacity-70 flex items-center gap-2"
             style={{ color: "rgba(255,255,255,0.8)" }}
           >
-            LUMINA <span style={{ color: "rgba(255,255,255,0.3)" }}>BI</span>
+            LUMINA <span style={{ color: "rgba(255,255,255,0.3)" }}>SCHOLAR</span>
           </Link>
           <div className="flex items-center gap-6">
             <Link
@@ -155,7 +155,7 @@ export default function Home() {
                   className="text-[10px] tracking-[0.3em] uppercase font-medium"
                   style={{ color: "rgba(255,255,255,0.28)" }}
                 >
-                  Conversational BI
+                  Automated University Ecosystem
                 </span>
               </motion.div>
 
@@ -166,11 +166,11 @@ export default function Home() {
                 transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
                 className="font-semibold leading-[0.93] tracking-[-0.04em]"
                 style={{
-                  fontSize: "clamp(48px, 6.5vw, 82px)",
+                  fontSize: "clamp(48px, 6.5vw, 80px)",
                   color: "#f0f0f2",
                 }}
               >
-                Your data,
+                Your syllabus,
                 <br />
                 <span style={{ color: "rgba(255,255,255,0.32)" }}>finally</span>
                 <br />
@@ -185,8 +185,7 @@ export default function Home() {
                 className="text-[15px] md:text-[17px] leading-[1.7] font-light"
                 style={{ color: "rgba(255,255,255,0.32)" }}
               >
-                Lumina connects to any data source and lets you explore,
-                visualise, and act on insights — using nothing but language.
+                Lumina Scholar integrates massive academic texts into semantic chunks, empowering students and professors to collaborate seamlessly with a Private Tutor AI.
               </motion.p>
 
               {/* CTAs */}
@@ -194,41 +193,31 @@ export default function Home() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9, delay: 0.42 }}
-                className="flex items-center gap-3"
+                className="flex flex-wrap items-center gap-3 mt-2"
               >
                 <Link
-                  href="/sign-up"
+                  href="/professor/dashboard"
                   className="group relative block px-7 py-[11px] text-[13px] font-medium
                              tracking-[0.05em] rounded-[3px] overflow-hidden
                              transition-all duration-150 active:scale-[0.97]"
-                  style={{ background: "#eeeef0", color: "#080808" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#ffffff"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#eeeef0"; }}
+                  style={{ background: "rgba(0, 242, 255, 0.15)", color: "#00F2FF", border: "1px solid rgba(0, 242, 255, 0.3)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0, 242, 255, 0.25)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0, 242, 255, 0.15)"; }}
                 >
-                  Request access
+                  Demo Professor View
                 </Link>
 
-                <button
-                  className="px-7 py-[11px] text-[13px] font-medium tracking-[0.05em]
-                             rounded-[3px] transition-all duration-150 active:scale-[0.97]"
-                  style={{
-                    background: "transparent",
-                    color: "rgba(255,255,255,0.40)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                  }}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.borderColor = "rgba(255,255,255,0.28)";
-                    el.style.color = "rgba(255,255,255,0.70)";
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.borderColor = "rgba(255,255,255,0.10)";
-                    el.style.color = "rgba(255,255,255,0.40)";
-                  }}
+                <Link
+                  href="/student/dashboard"
+                  className="group relative block px-7 py-[11px] text-[13px] font-medium
+                             tracking-[0.05em] rounded-[3px] overflow-hidden
+                             transition-all duration-150 active:scale-[0.97]"
+                  style={{ background: "rgba(52, 211, 153, 0.15)", color: "#34D399", border: "1px solid rgba(52, 211, 153, 0.3)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(52, 211, 153, 0.25)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(52, 211, 153, 0.15)"; }}
                 >
-                  See a demo
-                </button>
+                  Demo Student View
+                </Link>
               </motion.div>
 
               {/* Metrics */}
@@ -324,7 +313,7 @@ export default function Home() {
                 }}
               >
                 Built for the way
-                <br />analysts actually work.
+                <br />academics actually collaborate.
               </motion.h2>
             </div>
 
@@ -397,13 +386,13 @@ export default function Home() {
                     color: "#f0f0f2",
                   }}
                 >
-                  Ready to replace your dashboard stack?
+                  Ready to upgrade your university experience?
                 </h3>
                 <p
                   className="text-[13px] font-light leading-[1.7]"
                   style={{ color: "rgba(255,255,255,0.30)" }}
                 >
-                  Join teams already using Lumina to cut reporting time by 80%.
+                  Join thousands of professors and students already learning and collaborating on Lumina Scholar.
                 </p>
               </div>
 

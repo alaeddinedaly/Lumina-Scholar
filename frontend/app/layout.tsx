@@ -9,6 +9,7 @@ import "@fontsource/geist/700.css";
 import "@fontsource/geist/800.css";
 import "@fontsource/geist/900.css";
 import "./globals.css";
+import { SettingsProvider } from "@/lib/SettingsContext";
 
 export const metadata: Metadata = {
   title: "Lumina BI | Conversational AI Engine",
@@ -21,9 +22,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="font-geist antialiased bg-background text-white">
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className="font-geist antialiased bg-slate-50 text-slate-900 dark:bg-background dark:text-white transition-colors duration-300">
+        <SettingsProvider>
+          {children}
+        </SettingsProvider>
       </body>
     </html>
   );

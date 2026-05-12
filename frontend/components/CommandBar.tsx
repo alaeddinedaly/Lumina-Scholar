@@ -83,9 +83,9 @@ export default function CommandBar() {
           isFocused ? "shadow-[0_0_0_1px_#00f2ff,0_0_24px_rgba(0,242,255,0.2)]" : "shadow-lg"
         )}
       >
-        <Search className="w-5 h-5 text-white/50 mr-3" />
+        <Search className="w-5 h-5 text-slate-600 dark:text-white/50 mr-3" />
         <input
-          className="flex-1 bg-transparent border-none outline-none text-white !text-[16px] placeholder:text-white/30"
+          className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white !text-[16px] placeholder:text-slate-500 dark:placeholder:text-white/30"
           placeholder={state === "IDLE" ? typewriterText + "|" : ""}
           onFocus={() => { setIsFocused(true); setTypewriterText(""); }}
           onBlur={() => setIsFocused(false)}
@@ -106,7 +106,7 @@ export default function CommandBar() {
         {state === "IDLE" && (
           <button 
             type="submit" 
-            className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded text-white/80 transition-colors"
+            className="text-xs bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 px-3 py-1.5 rounded text-slate-600 dark:text-white/80 transition-colors"
           >
             Enter ↵
           </button>
@@ -125,12 +125,12 @@ export default function CommandBar() {
               <h3 className="text-sm font-semibold tracking-wide flex items-center gap-2 text-accent-cyan">
                 <Loader2 className="w-4 h-4 animate-spin text-accent-cyan" /> Generating Output
               </h3>
-              <span className="text-xs px-2 py-1 bg-white/5 rounded-full text-white/60">4 rows returned in 23ms</span>
+              <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-white/60">4 rows returned in 23ms</span>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Mock SQL */}
-              <div className="p-4 bg-black/40 rounded border border-white/5 font-mono text-xs text-white/80">
+              <div className="p-4 bg-slate-50 dark:bg-black/40 rounded border border-black/5 dark:border-white/5 font-mono text-xs text-slate-700 dark:text-white/80">
                 <span className="text-accent-violet">SELECT</span> route_id, <span className="text-accent-violet">SUM</span>(revenue)<br/>
                 <span className="text-accent-violet">FROM</span> shipments<br/>
                 <span className="text-accent-violet">WHERE</span> date <span className="text-accent-violet">&gt;=</span> <span className="text-green-400">&apos;2024-07-01&apos;</span><br/>

@@ -1,18 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GlassInput } from "@/components/auth/GlassInput";
 import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import api from "@/lib/api";
+
+const REMEMBER_KEY = "lumina_remembered_email";
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [emailValue, setEmailValue] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Load remembered email on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(REMEMBER_KEY);
+    if (stored) {
+      setEmailValue(stored);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate auth network request
-    setTimeout(() => setIsLoading(false), 2000);
+    setErrorMsg("");
+
+    const form = e.currentTarget;
+    const email = emailValue;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    // Persist or clear email based on checkbox
+    if (rememberMe) {
+      localStorage.setItem(REMEMBER_KEY, email);
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+    }
+
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      if (res.data.role === "PROFESSOR") {
+        router.push("/professor/dashboard");
+      } else {
+        router.push("/student/dashboard");
+      }
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || "Login failed");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -47,9 +86,15 @@ export default function SignInPage() {
             Welcome back
           </h1>
           <p className="text-[14px] text-white/40 font-light leading-relaxed">
-            Enter your credentials to access your Lumina workspace and BI data.
+            Enter your credentials to access your Lumina Scholar workspace.
           </p>
         </div>
+
+        {errorMsg && (
+          <div className="p-3 rounded-[6px] bg-red-500/10 border border-red-500/20 text-red-400 text-[12px] text-center">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -58,6 +103,8 @@ export default function SignInPage() {
             type="email"
             label="Email Address"
             placeholder="name@company.com"
+            value={emailValue}
+            onChange={e => setEmailValue(e.target.value)}
             required
           />
           <GlassInput
@@ -69,19 +116,21 @@ export default function SignInPage() {
           />
 
           <div className="flex items-center justify-between mt-1 mb-2">
-            <label className="flex items-center gap-2 cursor-pointer group">
-              <input type="checkbox" className="sr-only peer" />
-              <div className="w-4 h-4 rounded-[3px] border border-white/10 bg-white/5 
-                              peer-checked:bg-white/20 peer-checked:border-white/30 
-                              transition-all flex items-center justify-center">
-                <motion.svg 
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }} // simplified for demo
-                  className="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" 
-                  viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </motion.svg>
+            {/* Remember me — wired to localStorage */}
+            <label className="flex items-center gap-2 cursor-pointer group select-none">
+              <div
+                onClick={() => setRememberMe(v => !v)}
+                className={`w-4 h-4 rounded-[3px] border flex items-center justify-center transition-all cursor-pointer
+                  ${rememberMe
+                    ? "bg-white/20 border-white/40"
+                    : "border-white/10 bg-white/5 group-hover:border-white/20"
+                  }`}
+              >
+                {rememberMe && (
+                  <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
               </div>
               <span className="text-[12px] text-white/40 group-hover:text-white/60 transition-colors">
                 Remember me

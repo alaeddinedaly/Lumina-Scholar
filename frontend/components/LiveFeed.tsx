@@ -63,7 +63,7 @@ export default function LiveFeed() {
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden text-xs font-mono">
-      <div className="mb-3 flex items-center justify-between opacity-50 border-b border-white/10 pb-2">
+      <div className="mb-3 flex items-center justify-between opacity-50 border-b border-black/10 dark:border-white/10 pb-2 text-slate-800 dark:text-white">
         <span>KAFKA_STREAM_SIM</span>
         <span className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -79,7 +79,7 @@ export default function LiveFeed() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="flex items-center justify-between py-1.5 px-2 bg-white/[0.02] rounded border border-white/[0.05]"
+              className="flex items-center justify-between py-1.5 px-2 bg-black/[0.02] dark:bg-white/[0.02] rounded border border-black/[0.05] dark:border-white/[0.05]"
             >
               <div className="flex items-center gap-3">
                 <motion.span
@@ -90,9 +90,9 @@ export default function LiveFeed() {
                 >
                   {evt.topic}
                 </motion.span>
-                <span className="text-white/40">{evt.timestamp}</span>
+                <span className="text-slate-600 dark:text-white/40">{evt.timestamp}</span>
               </div>
-              <span className="text-white/80">{evt.data}</span>
+              <span className="text-slate-800 dark:text-white/80">{evt.data}</span>
             </motion.div>
           ))}
         </AnimatePresence>

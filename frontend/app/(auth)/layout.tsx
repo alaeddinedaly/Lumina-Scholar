@@ -15,7 +15,7 @@ export default function AuthLayout({
   const isSignIn = pathname === "/sign-in";
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden" style={{ background: "#050505" }}>
+    <div className="dark relative min-h-screen w-full overflow-hidden" style={{ background: "#050505" }}>
       {/* ── Grain overlay ── */}
       <div
         className="fixed inset-0 pointer-events-none z-[1] opacity-[0.035]"
@@ -44,7 +44,7 @@ export default function AuthLayout({
           className="text-[13px] font-medium tracking-[0.15em] transition-opacity hover:opacity-70"
           style={{ color: "rgba(255,255,255,0.8)" }}
         >
-          LUMINA <span style={{ color: "rgba(255,255,255,0.3)" }}>BI</span>
+          LUMINA <span style={{ color: "rgba(255,255,255,0.3)" }}>SCHOLAR</span>
         </Link>
         <div className="flex gap-4">
           <Link

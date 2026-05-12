@@ -1,84 +1,187 @@
-# Lumina: Event-Driven Conversational BI Platform 🌌
+# Lumina Scholar
 
-![Project Status](https://img.shields.io/badge/Status-Active_Development-brightgreen)
-![Architecture](https://img.shields.io/badge/Architecture-Event--Driven-blue)
-![Frontend Stack](https://img.shields.io/badge/Frontend-Next.js_|_React_|_Three.js-black)
-![AI Stack](https://img.shields.io/badge/AI_Engine-LangChain_|_Qwen_2.5-purple)
-
-**Lumina** is a next-generation Business Intelligence (BI) platform built as a graduation project (Projet de Fin d'Études - PFE). It challenges the traditional, static dashboard paradigm by replacing it with a fully interactive, **AI-driven spatial interface**. 
-
-Instead of forcing users to manually explore raw data streams, Lumina leverages offline Large Language Models (LLMs) to interpret natural language queries (e.g., *"Show me revenue drops by category"*) and dynamically maps them to optimized SQL to generate beautiful, interactive `Apache ECharts` datasets inside a hardware-accelerated 3D WebGL environment.
+**Lumina Scholar** is a full-stack academic platform built as a final-year graduation project (PFE). It bridges traditional course management with AI-powered study assistance, giving students an intelligent RAG-based Q&A interface over their course documents, while providing professors with real-time analytics on engagement and performance.
 
 ---
 
-## 🏗 System Architecture & Design Philosophy
+## ✨ Features
 
-The architecture of Lumina was chosen specifically to solve the performance and latency bottlenecks commonly found in enterprise analytic platforms that handle large datasets concurrently.
+### Student Portal
+- **Dashboard** — View enrolled courses, download course materials, and track upcoming assignment deadlines.
+- **Document Viewer / AI Study Hub** — Upload course PDFs and ask natural-language questions. Answers are generated locally via a RAG pipeline (ChromaDB + LM Studio), streamed token-by-token in real time over WebSockets.
+- **Assignment Submission** — Submit PDF assignments directly from the dashboard with deadline tracking and overdue indicators.
+- **Communication** — Channel-based messaging between students and professors.
+- **Settings** — Language toggle (English / French) and dark/light mode.
 
-### 1. Event-Driven Architecture (EDA)
-Traditional BI platforms rely on synchronous HTTP requests. If a user asks for an aggressive table join on 2,000,000 rows, an HTTP connection will stall and time-out. 
-Lumina adopts an **Event-Driven Architecture using Apache Kafka and WebSockets**:
-* **Why we chose this:** By using Kafka as the backbone stream processor, large analytical queries are pushed into an asynchronous queue rather than bottlenecking the NestJS API layer under heavy concurrency. 
-* Once the LLM generates the SQL and the database returns the payload, the platform streams the JSON result directly to the frontend via WebSockets in real-time. The UI is completely decoupled from the data-processing timeline.
-
-### 2. Spatial UI & Rendering Optimization
-We chose a highly uncommon approach for B2B dashboards: a $100,000 aesthetic.
-* **Why we chose this:** Enterprise software is traditionally flat and fatiguing. Lumina deploys a persistent WebGL layer (`Three.js` + `React-Three-Fiber`) running an optimized algorithm (Instanced Meshes, deferred initialization) beneath a frosted layer of `TailwindCSS` glassmorphism. It guarantees 60fps animations out of the box while keeping the users cognitively engaged.
-
-### 3. Local/Offline LLM Integation
-* **Why we chose this:** Enterprise BI strictly mandates privacy. Uploading corporate `.csv` datasets or SQL schemas to OpenAI generates a massive security risk. Lumina is designed to be paired with **LM Studio** and **Llama.cpp**, running quantized models (like `Qwen-2.5-Coder-7B`) entirely locally on limited VRAM hardware using the LangChain wrapper. No data ever leaves the VPC.
-
----
-
-## 🛠 Technology Stack
-
-### Frontend (User Interface)
-* **Framework:** Next.js (App Router) — Selected for its React Server Components (RSC) and highly efficient routing between the Data/Schema/Query flows.
-* **Styling & Animations:** Tailwind CSS & Framer Motion — Creating the responsive flex/grid layouts and complex spatial layout shifts (40/60 split terminal).
-* **3D Engine:** Three.js & React-Three-Fiber — Rendering the core background geometry.
-* **Data Visualization:** Apache ECharts (`echarts-for-react`) — Chosen over simple libraries (like Recharts) because of its built-in canvas rendering engines, massive dataset capability, and configuration hooks required to build the deeply stylized neon gradients.
-
-### Backend (Data Processing & AI)
-* **Framework:** NestJS (TypeScript Node.js Framework)
-* **Message Broker:** Apache Kafka (Event Streaming)
-* **AI Pipelines:** LangChain.js & Local LLMs powered via GGUF models.
+### Professor Portal
+- **Dashboard** — Overview of managed courses and enrolled students.
+- **Performance Analytics** — Per-course analytics dashboard with:
+  - Class average, assignment completion rate, and total AI study queries.
+  - Scatter plot correlating AI engagement with academic grade.
+  - At-risk and top-performer student segments.
+  - Full searchable student roster with scores and submission history.
+  - Inline grading hub — review student submissions and enter scores per assignment.
+- **Distribution** — Push course documents and assignments to enrolled students.
+- **Communication** — Channel-based messaging with students.
+- **Settings** — Profile and preference management.
 
 ---
 
-## 🚀 Getting Started
+## 🛠 Tech Stack
 
-Follow these instructions to spin up the Lumina Frontend environment on your local machine.
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion |
+| API Gateway | NestJS, TypeScript, Prisma ORM, BullMQ (job queues) |
+| AI Workers | Python (FastAPI / asyncpg), PyMuPDF, OpenAI-compatible client |
+| LLM Serving | LM Studio — `phi-3.5-mini-instruct` (generation) + `nomic-embed-text-v1.5` (embeddings) |
+| Vector Store | ChromaDB |
+| Database | PostgreSQL 15 (via Prisma) |
+| Cache / Pub-Sub | Redis 7 |
+| Containerisation | Docker Compose |
+
+---
+
+## 🏗 Project Structure
+
+```
+lumina-scholar/
+├── apps/
+│   ├── api/               # NestJS REST API + WebSocket gateway
+│   │   ├── src/
+│   │   │   ├── auth/      # JWT auth (access + refresh tokens)
+│   │   │   ├── courses/   # Course & enrollment management
+│   │   │   ├── documents/ # File upload, download, RAG ingestion jobs
+│   │   │   ├── messages/  # Channel messaging
+│   │   │   ├── analytics/ # Professor analytics endpoints
+│   │   │   └── websockets/# Real-time AI stream gateway
+│   │   └── prisma/        # Schema, migrations, seed data
+│   └── workers/           # Python AI workers
+│       ├── pdf_ingestion_worker.py  # PyMuPDF → chunks → ChromaDB embeddings
+│       └── chat_worker.py           # Query embed → ChromaDB → phi3.5 → Redis stream
+├── frontend/              # Next.js application
+│   └── app/
+│       ├── (auth)/        # Login / register pages
+│       └── (app)/
+│           ├── student/   # Student dashboard, documents, study hub, communication
+│           └── professor/ # Professor dashboard, analytics, distribution, communication
+├── docker-compose.yml     # Full stack orchestration
+└── .env.example           # Environment variable reference
+```
+
+---
+
+## 🚀 Getting Started (Local Development)
 
 ### Prerequisites
-- Node.js (v18.0.0 or higher)
-- npm or yarn
+- **Node.js** v18+
+- **Python** 3.11+
+- **Docker Desktop** (running)
+- **LM Studio** — installed and running locally
 
-### Installation Steps
+### 1. Clone & configure environment
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/YourUsername/Lumina-Conversational-BI.git
-   cd Lumina-Conversational-BI/frontend
-   ```
+```bash
+git clone https://github.com/your-username/lumina-scholar.git
+cd lumina-scholar
+cp .env.example .env   # Fill in your secrets
+```
 
-2. **Install all dependencies**
-   ```bash
-   npm install
-   ```
+### 2. Boot data infrastructure
 
-3. **Launch the Development Server**
-   ```bash
-   npm run dev
-   ```
+```bash
+docker-compose up -d postgres redis chroma
+```
 
-4. **Access the Platform**
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+This starts:
+- PostgreSQL 15 on `localhost:5432`
+- Redis 7 on `localhost:6379`
+- ChromaDB on `localhost:8000`
 
-> **Testing the Flow (Mock API):**
-> Currently, the Frontend features built-in delay simulators (`setTimeout`) rather than raw API hits. To test the core UI:
-> * Proceed to `http://localhost:3000/upload` to witness the Drag-and-Drop system and Analytics overlay.
-> * Navigate to `http://localhost:3000/query` to interact with the LLM Terminal and toggle the EChart visualization states.
-> * View historical AI snapshots mapping back to previous data sessions via `http://localhost:3000/history`.
+### 3. Set up and start the NestJS API
+
+```bash
+cd apps/api
+npm install
+npx prisma generate
+npx prisma migrate dev --name init
+npx prisma db seed          # Creates demo users, courses, and assignments
+npm run start:dev
+```
+
+API runs on `http://localhost:3001`.
+
+### 4. Start the Python AI Workers
+
+```bash
+cd apps/workers
+python -m venv venv
+.\venv\Scripts\activate      # Windows
+# source venv/bin/activate   # Mac / Linux
+
+pip install -r requirements.txt
+python main.py
+```
+
+### 5. Configure LM Studio *(required for AI features)*
+
+1. Open LM Studio and click the **Local Server** icon.
+2. Click **Start Server** (default port `1234`).
+3. Load both models:
+   - **Generation:** `phi-3.5-mini-instruct`
+   - **Embeddings:** `nomic-embed-text-v1.5`
+4. Verify the server logs show incoming requests.
+
+### 6. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs on `http://localhost:3000`.
 
 ---
-*Developed securely and rapidly as a thesis execution project (PFE) inside the Novation City AI ecosystem format.*
+
+## 🐳 Full Docker Compose (all services)
+
+> **Note:** Docker mode requires LM Studio running on the host machine (exposed via `host.docker.internal:1234`).
+
+```bash
+docker-compose up --build
+```
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| NestJS API | http://localhost:3001 |
+| ChromaDB | http://localhost:8000 |
+
+---
+
+## 🔑 Demo Credentials (after seeding)
+
+| Role | Email | Password |
+|---|---|---|
+| Professor | professor@lumina.test | password123 |
+| Student 1 | student1@lumina.test | password123 |
+| Student 2 | student2@lumina.test | password123 |
+| Student 3 | student3@lumina.test | password123 |
+| Student 4 | student4@lumina.test | password123 |
+| Student 5 | student5@lumina.test | password123 |
+
+---
+
+## ⚙️ How the RAG Pipeline Works
+
+1. A professor uploads a PDF → the NestJS API stores it and enqueues an ingestion job via **BullMQ**.
+2. `pdf_ingestion_worker.py` picks up the job, parses the PDF with **PyMuPDF**, chunks the text, generates embeddings via **nomic-embed-text** (through LM Studio's OpenAI-compatible API), and stores them in **ChromaDB**.
+3. When a student asks a question in the Study Hub, the API emits it to the **WebSocket gateway**.
+4. `chat_worker.py` embeds the query, performs a similarity search in ChromaDB, constructs a precision context prompt, pipes it into **phi-3.5-mini**, and broadcasts token chunks back over a **Redis Pub/Sub** channel directly to the student's browser in real time.
+
+---
+
+## 📜 License
+
+MIT

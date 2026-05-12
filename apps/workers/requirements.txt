@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+bullmq
+redis
+chromadb
+pymupdf
+langchain
+langchain-text-splitters
+openai
+python-dotenv
+asyncpg

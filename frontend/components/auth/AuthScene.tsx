@@ -20,13 +20,14 @@ export default function AuthScene() {
     let material: THREE.Material;
     let onMove: (e: MouseEvent) => void;
     let onResize: () => void;
+    // Observer is hoisted here so the cleanup function can always safely call .disconnect()
+    let observer: MutationObserver | null = null;
     
     const isTouch = "ontouchstart" in window;
 
     // ── Preempt Main Thread Freeze ───────────────────────────────────────────
-    // Three.js heavily blocks the main thread to compile GLSL shaders.
-    // By deferring this execution by ~400ms, we guarantee the Framer Motion UI 
-    // finishes its smooth 0.4s intro without stutter or freezing.
+    // Yield just 10ms to let React finish its DOM mount before we lock the CPU
+    // to compile WebGL shaders.
     const initTimer = setTimeout(() => {
       if (!mountRef.current) return;
 
@@ -63,12 +64,17 @@ export default function AuthScene() {
 
     // ── Geometry & Material ──────────────────────────────────────────────────
     cubeGeo = new THREE.BoxGeometry(1, 1, 1);
-    
+
+    // Auth pages are always dark — cubes are always white/glassy.
+    // We no longer check document.documentElement because the .dark class
+    // is scoped to the page wrapper, not <html>.
+    const CUBE_COLOR = 0xffffff;
+
     // Premium light/glassy material preserving dual-tone neon reflections
     // Graceful degradation: Use MeshStandardMaterial on mobile (single-pass) over Physical (multi-pass)
     material = isMobile
       ? new THREE.MeshStandardMaterial({
-          color: 0xffffff,
+          color: CUBE_COLOR,
           metalness: 0.3,
           roughness: 0.15,
           transparent: true,
@@ -76,7 +82,7 @@ export default function AuthScene() {
           side: THREE.DoubleSide,
         })
       : new THREE.MeshPhysicalMaterial({
-          color: 0xffffff, 
+          color: CUBE_COLOR,
           metalness: 0.3,
           roughness: 0.15,
           transmission: 0.9, // high glass-like transmission (VERY expensive on mobile GPU)
@@ -85,6 +91,8 @@ export default function AuthScene() {
           opacity: 0.85,
           side: THREE.DoubleSide,
         });
+
+    // No MutationObserver needed — auth pages have a fixed dark theme.
 
     // Custom shader injection to fade based on Y coordinate natively
     material.onBeforeCompile = (shader) => {
@@ -179,15 +187,16 @@ export default function AuthScene() {
     window.addEventListener("resize", onResize);
 
     // ── Animation ────────────────────────────────────────────────────────────
-    let frameId: number;
+    // NOTE: frameId is declared in the outer scope (line 15) so the cleanup
+    // function can correctly cancel the animation loop on unmount.
     let opacityT = 0; // for global entry fade
 
     const animate = () => {
       frameId = requestAnimationFrame(animate);
 
-      // Vastly accelerated intro fade in for canvas (appears ~instant instead of 1.6s)
+      // Smooth, elegant intro fade for the background cubes over ~2 seconds
       if (opacityT < 1) {
-        opacityT += 0.08;
+        opacityT += 0.01;
         const ease = opacityT * opacityT * (3 - 2 * opacityT);
         renderer.domElement.style.opacity = String(Math.min(1, ease));
       }
@@ -230,15 +239,18 @@ export default function AuthScene() {
     };
 
     animate();
-    }, 400);
+    }, 10);
 
     return () => {
+      // observer is null since we removed the MutationObserver, but guard for safety
+      observer?.disconnect();
       clearTimeout(initTimer);
       if (frameId) cancelAnimationFrame(frameId);
       if (!isTouch && onMove) window.removeEventListener("mousemove", onMove);
       if (onResize) window.removeEventListener("resize", onResize);
       if (mountRef.current && renderer) {
-        mountRef.current.removeChild(renderer.domElement);
+        // Guard: only removeChild if the domElement is still an actual child
+        try { mountRef.current.removeChild(renderer.domElement); } catch (_) {}
       }
       renderer?.dispose();
       cubeGeo?.dispose();
